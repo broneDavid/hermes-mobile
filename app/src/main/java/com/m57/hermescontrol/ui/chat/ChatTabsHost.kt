@@ -34,11 +34,12 @@ fun ChatTabsHost(
     // 首次: 如果还没有标签,创建第一个
     LaunchedEffect(Unit) {
         if (tabs.isEmpty()) {
-            val first = TabEntry(
-                id = "tab-${tabCounter++}",
-                sessionId = initialSessionId,
-                title = "会话 1",
-            )
+            val first =
+                TabEntry(
+                    id = "tab-${tabCounter++}",
+                    sessionId = initialSessionId,
+                    title = "会话 1",
+                )
             tabs = listOf(first)
             activeTabId = first.id
         }
@@ -59,11 +60,12 @@ fun ChatTabsHost(
                     }
                 },
                 onAdd = {
-                    val newTab = TabEntry(
-                        id = "tab-${tabCounter++}",
-                        sessionId = null,
-                        title = "会话 ${tabs.size + 1}",
-                    )
+                    val newTab =
+                        TabEntry(
+                            id = "tab-${tabCounter++}",
+                            sessionId = null,
+                            title = "会话 ${tabs.size + 1}",
+                        )
                     tabs = tabs + newTab
                     activeTabId = newTab.id
                 },
@@ -78,9 +80,10 @@ fun ChatTabsHost(
                 sessionId = active.sessionId,
                 onOpenDrawer = onOpenDrawer,
                 onTitleChange = { title ->
-                    tabs = tabs.map {
-                        if (it.id == active.id) it.copy(title = title) else it
-                    }
+                    tabs =
+                        tabs.map {
+                            if (it.id == active.id) it.copy(title = title) else it
+                        }
                 },
             )
         }
@@ -121,22 +124,28 @@ private fun TabBar(
     onAdd: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 4.dp, vertical = 4.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 4.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         tabs.forEach { tab ->
             val isActive = tab.id == activeTabId
             Surface(
-                modifier = Modifier
-                    .padding(horizontal = 2.dp)
-                    .clickable { onSelect(tab.id) },
+                modifier =
+                    Modifier
+                        .padding(horizontal = 2.dp)
+                        .clickable { onSelect(tab.id) },
                 shape = MaterialTheme.shapes.small,
-                color = if (isActive) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surface,
+                color =
+                    if (isActive) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
             ) {
                 Row(
                     modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
@@ -151,9 +160,10 @@ private fun TabBar(
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "关闭标签",
-                        modifier = Modifier
-                            .size(14.dp)
-                            .clickable { onClose(tab.id) },
+                        modifier =
+                            Modifier
+                                .size(14.dp)
+                                .clickable { onClose(tab.id) },
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
