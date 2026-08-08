@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,6 +52,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -425,12 +427,13 @@ fun ChatScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // 会话切换器: 点标题弹出会话列表(类似 Telegram 顶部切换)
                 var showSessionMenu by remember { mutableStateOf(false) }
-                Box {
+                Box(
+                    modifier = Modifier.weight(1f),
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier =
                             Modifier
-                                .weight(1f)
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable { showSessionMenu = true }
                                 .padding(horizontal = 4.dp, vertical = 2.dp),
@@ -469,6 +472,7 @@ fun ChatScreen(
                         if (state.sessions.isEmpty()) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.chat_no_sessions)) },
+                                onClick = {},
                                 enabled = false,
                             )
                         }
