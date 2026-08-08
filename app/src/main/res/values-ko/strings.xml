@@ -97,6 +97,9 @@
 
     <!-- Chat Screen & Bubble -->
     <string name="chat_action_search">검색</string>
+    <string name="chat_action_switch_session">세션 전환</string>
+    <string name="chat_action_new_session">새 세션</string>
+    <string name="chat_no_sessions">세션 없음</string>
     <string name="chat_action_close_search">검색 닫기</string>
     <string name="chat_action_reconnect">재접속</string>
     <string name="chat_action_relogin">재로그인</string>
