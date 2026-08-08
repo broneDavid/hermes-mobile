@@ -3,8 +3,10 @@ package com.m57.hermescontrol.ui.chat.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -88,6 +90,10 @@ fun ChatMessageList(
                 items = messages,
                 key = { _, message -> message.id },
             ) { index, message ->
+                // 间距: 同角色 4dp,跨角色 12dp(视觉分组,类似 Telegram/Chatbox)
+                val prevRole = messages.getOrNull(index - 1)?.role
+                val gapDp = if (prevRole == message.role) 4.dp else 12.dp
+                Spacer(modifier = Modifier.height(gapDp))
                 val isCurrentMatch =
                     isSearchActive &&
                         currentSearchMatchIndex >= 0 &&

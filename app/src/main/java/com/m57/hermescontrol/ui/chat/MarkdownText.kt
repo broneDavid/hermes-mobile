@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -51,7 +52,7 @@ import com.m57.hermescontrol.theme.SearchHighlightColors
 import com.m57.hermescontrol.theme.searchHighlightColors
 
 private val URL_PATTERN = Regex("""https?://[^\s)>\[\]"'‘’]+""")
-private val TABLE_COL_WIDTH = 160.dp
+
 private val FN_DEF_RE = Regex("""^\[\^([^\]]+)\]:\s*(.*)$""")
 private val BULLET_RE = Regex("""^\s*[-*+]\s+(.*)""")
 private val TASK_RE = Regex("""^\s*[-*+]\s+\[([ xX])\]\s+(.*)""")
@@ -79,9 +80,24 @@ fun MarkdownText(
 ) {
     val statusColors = LocalHermesStatusColors.current
     val highlights = searchHighlightColors(statusColors)
+    val linkColor = MaterialTheme.colorScheme.primary
+
     if (isStreaming) {
+        // 流式: 轻量渲染行内 markdown(加粗/斜体/行内代码/链接),
+        // 避免暴露 ** ` # 等源码符号;代码块/表格等块级维持文本,结束再完整渲染。
+        val inlineAnnotated =
+            remember(text) {
+                parseInline(
+                    text = text,
+                    textColor = textColor,
+                    searchQuery = searchQuery,
+                    isCurrentMatch = isCurrentMatch,
+                    linkColor = linkColor,
+                    highlights = highlights,
+                )
+            }
         Text(
-            text = text,
+            text = inlineAnnotated,
             color = textColor,
             style = MaterialTheme.typography.bodyMedium,
             modifier = modifier,
@@ -89,7 +105,6 @@ fun MarkdownText(
         return
     }
 
-    val linkColor = MaterialTheme.colorScheme.primary
     val blocks = remember(text) { parseBlocks(text) }
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -451,7 +466,7 @@ private fun MarkdownTable(
                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                     modifier =
                         Modifier
-                            .width(TABLE_COL_WIDTH)
+                            .widthIn(min = 72.dp)
                             .padding(6.dp),
                 )
             }
@@ -468,7 +483,7 @@ private fun MarkdownTable(
                         style = MaterialTheme.typography.bodySmall,
                         modifier =
                             Modifier
-                                .width(TABLE_COL_WIDTH)
+                                .widthIn(min = 72.dp)
                                 .padding(6.dp),
                     )
                 }
@@ -746,6 +761,26 @@ internal fun parseInline(
         val src = text
         while (i < src.length) {
             when {
+                // 数学公式 $...$(等宽斜体+浅色底兜底,避免漏出 $ 符号)
+                src.startsWith("$", i) -> {
+                    val end = src.indexOf("$", i + 1)
+                    if (end != -1) {
+                        withStyle(
+                            SpanStyle(
+                                fontFamily = FontFamily.Monospace,
+                                fontStyle = FontStyle.Italic,
+                                background = textColor.copy(alpha = 0.08f),
+                            ),
+                        ) {
+                            append(src.substring(i + 1, end))
+                        }
+                        i = end + 1
+                    } else {
+                        append(src[i])
+                        i++
+                    }
+                }
+
                 // ***bold italic***
                 src.startsWith("***", i) -> {
                     val end = src.indexOf("***", i + 3)

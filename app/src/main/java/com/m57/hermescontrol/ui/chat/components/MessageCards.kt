@@ -249,7 +249,7 @@ fun CodeBlockCard(
                 }
             }
             // Code content with syntax highlighting
-            val highlighted = remember(code) { highlightSyntax(code) }
+            val highlighted = remember(code, language) { highlightSyntax(code, language) }
             Text(
                 text = highlighted,
                 fontFamily = FontFamily.Monospace,
@@ -261,6 +261,17 @@ fun CodeBlockCard(
                         .horizontalScroll(rememberScrollState())
                         .padding(horizontal = 10.dp, vertical = 6.dp),
             )
+            // 横滑提示(仅当代码可能超宽时)
+            if (code.contains('\n') && code.length > 200) {
+                Text(
+                    text = "← 可横向滑动 →",
+                    style =
+                        MaterialTheme.typography.labelSmall.copy(
+                            color = CodeTerminalMuted,
+                        ),
+                    modifier = Modifier.padding(start = 10.dp, bottom = 4.dp),
+                )
+            }
         }
     }
 }
@@ -270,6 +281,7 @@ private val HIGHLIGHT_TOKENS =
     listOf(
         TokenPattern(Regex("""//[^\n]*"""), CodeComment),
         TokenPattern(Regex("""/\*[\s\S]*?\*/"""), CodeComment),
+        TokenPattern(Regex("""#[^\n]*"""), CodeComment),
         TokenPattern(Regex(""""[^"\\]*(\\.[^"\\]*)*""""), CodeString),
         TokenPattern(Regex("""'[^'\\]*(\\.[^'\\]*)*'"""), CodeString),
         TokenPattern(Regex("""`[^`\\]*(\\.[^`\\]*)*`"""), CodeString),
@@ -289,14 +301,53 @@ private val HIGHLIGHT_TOKENS =
         TokenPattern(Regex("""[{}()\[\];,.]"""), CodePunctuation),
     )
 
+// JSON/YAML 键值对高亮: "key": value 或 key: value
+private val JSON_KEY_PATTERN =
+    TokenPattern(
+        Regex("""(?:"[^"]*"\s*:|^\s*[A-Za-z_][A-Za-z0-9_-]*\s*:)""", RegexOption.MULTILINE),
+        CodeKeyword,
+    )
+
+// bash 变量 $VAR 与常见命令
+private val BASH_PATTERN =
+    TokenPattern(Regex("""\$\{?[A-Za-z_][A-Za-z0-9_]*\}?"""), CodeString)
+
+// Python 关键字补充
+private val PYTHON_EXTRA_PATTERN =
+    TokenPattern(
+        Regex(
+            """\b(?:def|elif|not|and|or|pass|lambda|yield|global|nonlocal|with|""" +
+                """as|assert|del|raise|except|from|print|None|True|False|self|import)\b""",
+        ),
+        CodeKeyword,
+    )
+
 /**
  * Builds an [AnnotatedString] from [code] with syntax highlighting colours
  * applied via token regexes. Covers keywords, strings, comments, numbers,
  * and punctuation — everything else remains the default light-grey.
  */
-internal fun highlightSyntax(code: String): AnnotatedString =
+internal fun highlightSyntax(
+    code: String,
+    language: String? = null,
+): AnnotatedString =
     buildAnnotatedString {
-        val tokens = HIGHLIGHT_TOKENS
+        // 按语言附加 token 集
+        val lang = language?.lowercase() ?: ""
+        val extraTokens =
+            when {
+                lang.contains("json") || lang.contains("yaml") || lang.contains("yml") ->
+                    listOf(JSON_KEY_PATTERN)
+
+                lang.contains("bash") || lang.contains("sh") || lang.contains("shell") ->
+                    listOf(BASH_PATTERN)
+
+                lang.contains("python") || lang.contains("py") ->
+                    listOf(PYTHON_EXTRA_PATTERN)
+
+                else -> emptyList()
+            }
+        val tokens = HIGHLIGHT_TOKENS + extraTokens
         var lastIndex = 0
         val matches = mutableListOf<Pair<IntRange, Color>>()
 
