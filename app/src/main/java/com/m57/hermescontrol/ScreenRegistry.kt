@@ -35,7 +35,7 @@ import com.m57.hermescontrol.ui.achievements.AchievementsScreen as AchievementsS
 import com.m57.hermescontrol.ui.analytics.AnalyticsScreen as AnalyticsScreenContent
 import com.m57.hermescontrol.ui.billing.BillingScreen as BillingScreenContent
 import com.m57.hermescontrol.ui.channels.ChannelsScreen as ChannelsScreenContent
-import com.m57.hermescontrol.ui.chat.ChatScreen as ChatScreenContent
+import com.m57.hermescontrol.ui.chat.ChatboxScreen as ChatboxScreenContent
 import com.m57.hermescontrol.ui.config.ConfigScreen as ConfigScreenContent
 import com.m57.hermescontrol.ui.cron.CronJobsScreen as CronJobsScreenContent
 import com.m57.hermescontrol.ui.files.FilesScreen as FilesScreenContent
@@ -83,7 +83,7 @@ object ScreenRegistry {
                 R.string.screen_chat,
                 Icons.AutoMirrored.Filled.Chat,
                 DrawerSection.CONVERSE,
-            ) { sessionId, openDrawer -> ChatScreenContent(onOpenDrawer = openDrawer, sessionId = sessionId) },
+            ) { sessionId, openDrawer -> ChatboxScreenContent(onOpenDrawer = openDrawer, sessionId = sessionId) },
             ScreenDefinition(
                 HistoryScreen,
                 R.string.screen_history,
