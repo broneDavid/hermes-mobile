@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.Webhook
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
-import com.m57.hermescontrol.ui.chat.ChatTabsHost
 import com.m57.hermescontrol.ui.common.NeurologyIcon
 import com.m57.hermescontrol.ui.achievements.AchievementsScreen as AchievementsScreenContent
 import com.m57.hermescontrol.ui.analytics.AnalyticsScreen as AnalyticsScreenContent
@@ -83,7 +82,7 @@ object ScreenRegistry {
                 R.string.screen_chat,
                 Icons.AutoMirrored.Filled.Chat,
                 DrawerSection.CONVERSE,
-            ) { sessionId, openDrawer -> ChatTabsHost(onOpenDrawer = openDrawer, initialSessionId = sessionId) },
+            ) { sessionId, openDrawer -> ChatScreenContent(onOpenDrawer = openDrawer, sessionId = sessionId) },
             ScreenDefinition(
                 HistoryScreen,
                 R.string.screen_history,

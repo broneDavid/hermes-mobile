@@ -19,6 +19,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,11 +33,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +70,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -415,14 +423,79 @@ fun ChatScreen(
         pinTopBar = true,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                AutoScrollingTitleText(
-                    text = state.chatTitle,
-                    modifier = Modifier.weight(1f),
-                    style =
-                        MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
-                )
+                // 会话切换器: 点标题弹出会话列表(类似 Telegram 顶部切换)
+                var showSessionMenu by remember { mutableStateOf(false) }
+                Box {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { showSessionMenu = true }
+                                .padding(horizontal = 4.dp, vertical = 2.dp),
+                    ) {
+                        AutoScrollingTitleText(
+                            text = state.chatTitle,
+                            modifier = Modifier.weight(1f),
+                            style =
+                                MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.ArrowDropDown,
+                            contentDescription = stringResource(R.string.chat_action_switch_session),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showSessionMenu,
+                        onDismissRequest = { showSessionMenu = false },
+                        modifier = Modifier.widthIn(max = 320.dp),
+                    ) {
+                        // 新建会话入口(顶部)
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.chat_action_new_session)) },
+                            leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                            onClick = {
+                                showSessionMenu = false
+                                viewModel.createNewSession()
+                            },
+                        )
+                        HorizontalDivider()
+                        // 会话列表(当前会话标记 ✓)
+                        if (state.sessions.isEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.chat_no_sessions)) },
+                                enabled = false,
+                            )
+                        }
+                        state.sessions.forEach { session ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = session.title.ifBlank { session.id },
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                },
+                                leadingIcon = {
+                                    if (session.id == state.currentSessionId) {
+                                        Icon(Icons.Filled.Check, contentDescription = null)
+                                    }
+                                },
+                                onClick = {
+                                    showSessionMenu = false
+                                    if (session.id != state.currentSessionId) {
+                                        viewModel.switchSession(session.id)
+                                    }
+                                },
+                            )
+                        }
+                    }
+                }
                 // Connection status dot — red when offline, hidden when connected
                 if (!state.isConnected) {
                     Spacer(modifier = Modifier.width(8.dp))
